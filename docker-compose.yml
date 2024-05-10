@@ -1,0 +1,48 @@
+version: '3.4'
+
+services:
+  publisher.api:
+    image: ${DOCKER_REGISTRY-}publisherapi
+    build:
+      context: .
+      dockerfile: src/services/Publisher/Publisher.API/Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - RabbitMQ__Host=rabbitmq
+
+  consumer.api:
+    image: ${DOCKER_REGISTRY-}consumerapi
+    build:
+      context: .
+      dockerfile: src/services/Consumer/Consumer.API/Dockerfile
+    depends_on: 
+      - mongodb
+
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    hostname: "rabbitmq"
+    environment:
+        RABBITMQ_DEFAULT_USER: guest
+        RABBITMQ_DEFAULT_PASS: guest
+    ports:
+        - "15672:15672"
+        - "5672:5672"
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongouser
+      MONGO_INITDB_ROOT_PASSWORD: mongopassword
+      MONGO_INITDB_DATABASE: MessageReceptor
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:
+    driver: local
+  
+
